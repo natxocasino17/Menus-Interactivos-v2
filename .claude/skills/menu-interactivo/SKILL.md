@@ -152,6 +152,12 @@ fuenteCuerpo, googleFonts`. Cada producto admite `precio` o `variantes`
   el render petaba y la web quedaba en blanco. Mitigado en dos frentes: el JS
   comprueba que el elemento existe antes de escribir, y `verificar.sh` revisa los
   `id`. Si se actualiza el JS de un restaurante, actualizar también su `index.html`.
+- **`placeholder.svg` NO debe llevar el nombre de un restaurante incrustado.**
+  Bug encontrado: el placeholder tenía "SPICY COCONUT" pintado dentro, así que en
+  otro restaurante sin fotos el modal mostraba ese texto. La plantilla usa ahora
+  un placeholder neutro ("foto próximamente"). Si un dueño quiere las fotos en
+  negro, basta con sustituir su `cliente/img/placeholder.svg` por un rectángulo
+  negro (las imágenes vacías caen al placeholder; no hay que tocar `menu.json`).
 - **Restaurantes existentes NO se actualizan solos** al mejorar la plantilla:
   cada `<slug>/` es una copia congelada. Para llevar una mejora hay que recopiar
   de `template/` (conservando su `menu.json` y `config.js`) o parchear a mano.

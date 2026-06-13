@@ -16,7 +16,7 @@
     '<svg class="section__motif" viewBox="0 0 100 100" fill="currentColor" aria-hidden="true">' +
     '<path d="M50 8c4 14-2 20 6 28s20 2 30 8c-12 8-22 2-28 10s0 20-8 30c-6-12-2-22-10-28s-20 0-30-8c12-6 22-2 28-10s2-20 12-30z"/>' +
     "</svg>";
-  const PLACEHOLDER_IMG = "img/placeholder.svg";
+  const PLACEHOLDER_IMG = "img/placeholder.svg?v=6";
 
   /* ---------- Tema (colores + fuentes) desde menu.json ---------- */
   function applyTheme(rest) {
