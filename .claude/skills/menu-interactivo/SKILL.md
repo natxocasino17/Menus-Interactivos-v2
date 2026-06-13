@@ -160,6 +160,14 @@ fuenteCuerpo, googleFonts`. Cada producto admite `precio` o `variantes`
 - **Menú embebido:** `empaquetar.sh`/`verificar.sh` generan `cliente/menu-data.js`
   (`window.MENU_FALLBACK`) desde `menu.json`; `app.js` lo usa si Supabase y
   `menu.json` fallan → la carta nunca queda en blanco.
+- **Salto de fuentes (FOUT) al cargar:** las Google Fonts y el tema vienen de
+  `menu.json`, así que si se aplican SOLO tras la carga async (Supabase→menu.json)
+  la página parpadea cambiando de fuente varias veces. Mitigado: `app.js` aplica
+  el tema embebido (`window.MENU_FALLBACK`) de inmediato al arrancar, antes de la
+  carga async, para pintar la fuente/nombre correctos en el primer frame. La
+  inyección del `<link>` de fuentes es **idempotente** (`id="dynamic-fonts"`): no
+  se duplica cuando `render()` vuelve a llamar a `applyTheme`. Si tocas el orden
+  de arranque, mantén ambas cosas.
 - **Probar en local sirviendo desde la carpeta del restaurante**
   (`cd <slug> && python3 -m http.server`), NO desde la raíz (si no `/cliente/` da 404).
 - **Raíz del sitio:** `index.html` que redirige a `cliente/` (si no, la URL base
