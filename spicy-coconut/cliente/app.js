@@ -61,10 +61,15 @@
         });
         const data = await res.json();
         if (data && data.restaurante && data.secciones && data.secciones.length) return data;
-      } catch (_) { /* cae al JSON estático si Supabase falla o está vacío */ }
+      } catch (_) { /* cae al menú local si Supabase falla o está vacío */ }
     }
-    const res = await fetch(cfg.MENU_JSON || "menu.json", { cache: "no-store" });
-    return res.json();
+    /* Intenta menu.json; si falla, usa el menú embebido (siempre disponible). */
+    try {
+      const res = await fetch(cfg.MENU_JSON || "menu.json", { cache: "no-store" });
+      const j = await res.json();
+      if (j && j.secciones && j.secciones.length) return j;
+    } catch (_) { /* usa el embebido */ }
+    return window.MENU_FALLBACK || { restaurante: {}, secciones: [] };
   }
 
   /* ---------- Utilidades ---------- */
