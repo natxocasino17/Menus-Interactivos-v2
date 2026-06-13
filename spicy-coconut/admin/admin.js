@@ -63,18 +63,21 @@
   }
 
   /* ---------- Login ---------- */
-  async function tryLogin(pass) {
+  async function tryLogin(email, pass) {
     if (SUPA) {
-      /* En modo Supabase, escribe "email:contraseña" en el campo */
-      const i = pass.indexOf(":");
-      if (i < 0) throw new Error("Formato: email:contraseña");
-      const res = await fetch(cfg.SUPABASE_URL + "/auth/v1/token?grant_type=password", {
-        method: "POST",
-        headers: { apikey: cfg.SUPABASE_ANON_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ email: pass.slice(0, i), password: pass.slice(i + 1) }),
-      });
-      const data = await res.json();
-      if (!data.access_token) throw new Error("Credenciales incorrectas");
+      if (!email) throw new Error("Escribe tu email");
+      let res, data;
+      try {
+        res = await fetch(cfg.SUPABASE_URL + "/auth/v1/token?grant_type=password", {
+          method: "POST",
+          headers: { apikey: cfg.SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim(), password: pass }),
+        });
+        data = await res.json();
+      } catch (_) {
+        throw new Error("No se pudo conectar con el servidor. Revisa tu conexión.");
+      }
+      if (!data.access_token) throw new Error(data.error_description || data.msg || "Email o contraseña incorrectos");
       accessToken = data.access_token;
     } else {
       const stored = localStorage.getItem("mi-admin-hash") || DEFAULT_PASS_HASH;
@@ -87,7 +90,7 @@
     e.preventDefault();
     $("#login-error").textContent = "";
     try {
-      await tryLogin($("#login-pass").value);
+      await tryLogin($("#login-email").value, $("#login-pass").value);
       await start();
     } catch (err) {
       $("#login-error").textContent = err.message;
