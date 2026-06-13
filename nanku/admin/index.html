@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin · Menú</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=5">
+</head>
+<body>
+
+  <!-- Login -->
+  <div class="login" id="login-screen">
+    <form class="login__card" id="login-form">
+      <p class="login__logo" id="login-logo">Admin</p>
+      <p class="login__sub">Panel de administración</p>
+      <input class="login__input" type="email" id="login-email" placeholder="Email" autocomplete="username">
+      <input class="login__input" type="password" id="login-pass" placeholder="Contraseña" autocomplete="current-password" required>
+      <button class="btn btn--primary login__btn" type="submit">Entrar</button>
+      <p class="login__error" id="login-error"></p>
+    </form>
+  </div>
+
+  <!-- Panel -->
+  <div class="panel" id="panel" hidden>
+    <header class="topbar">
+      <p class="topbar__logo" id="topbar-logo">Admin <span>panel</span></p>
+      <div class="topbar__actions">
+        <button class="btn" id="btn-import">Importar JSON</button>
+        <button class="btn" id="btn-export">Descargar menu.json</button>
+        <button class="btn btn--primary" id="btn-save">Guardar cambios</button>
+        <button class="btn" id="btn-password">Cambiar contraseña</button>
+        <button class="btn btn--ghost" id="btn-logout">Salir</button>
+      </div>
+    </header>
+
+    <p class="hint" id="save-hint"></p>
+    <main class="editor" id="editor"></main>
+    <button class="btn btn--primary btn--add-section" id="btn-add-section">+ Añadir sección</button>
+  </div>
+
+  <!-- Modal edición de producto -->
+  <div class="modal" id="edit-modal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <form class="modal__card" id="edit-form">
+      <h3 class="modal__title" id="edit-title">Editar plato</h3>
+      <label class="field">Nombre<input type="text" id="f-nombre" required></label>
+      <label class="field">Descripción (español)<textarea id="f-desc-es" rows="3"></textarea></label>
+      <label class="field">Descripción (inglés)<textarea id="f-desc-en" rows="3"></textarea></label>
+      <label class="field">Precio (vacío si usa variantes)<input type="number" id="f-precio" min="0" step="50"></label>
+      <label class="field">Variantes (una por línea: <code>Nombre = precio</code>)
+        <textarea id="f-variantes" rows="3" placeholder="Pollo / Chicken = 8200"></textarea></label>
+      <label class="field">Alérgenos (separados por coma)<input type="text" id="f-alergenos" placeholder="maní, sésamo"></label>
+      <div class="field field--row">
+        <label class="check"><input type="checkbox" id="f-destacado"> Destacado ★</label>
+        <label class="check"><input type="checkbox" id="f-disponible" checked> Disponible</label>
+      </div>
+      <label class="field">Imagen del plato<input type="file" id="f-imagen" accept="image/*"></label>
+      <img class="img-preview" id="f-imagen-preview" src="" alt="" hidden>
+      <div class="modal__actions">
+        <button class="btn btn--danger" type="button" id="btn-delete-product">Eliminar plato</button>
+        <span class="spacer"></span>
+        <button class="btn" type="button" data-close>Cancelar</button>
+        <button class="btn btn--primary" type="submit">Aplicar</button>
+      </div>
+    </form>
+  </div>
+
+  <input type="file" id="import-input" accept="application/json" hidden>
+
+  <script src="../cliente/config.js?v=5"></script>
+  <script src="admin.js?v=5"></script>
+</body>
+</html>

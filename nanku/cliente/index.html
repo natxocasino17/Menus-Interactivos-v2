@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menú</title>
+  <meta name="description" content="Menú digital interactivo.">
+  <meta name="theme-color" content="#161310">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Las fuentes se inyectan dinámicamente desde menu.json (tema.googleFonts) -->
+  <link rel="stylesheet" href="styles.css?v=5">
+</head>
+<body>
+
+  <header class="hero" id="top">
+    <div class="hero__flower" aria-hidden="true">❋</div>
+    <h1 class="hero__logo" id="hero-logo">Menú</h1>
+    <p class="hero__sub" id="hero-sub">menu</p>
+    <a class="hero__cta" href="#nav">Ver la carta ↓</a>
+  </header>
+
+  <nav class="nav" id="nav" aria-label="Secciones del menú">
+    <div class="nav__scroll" id="nav-chips"></div>
+  </nav>
+
+  <main id="menu" aria-live="polite">
+    <p class="loading">Cargando la carta…</p>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__flower" aria-hidden="true">❋</div>
+    <p class="footer__brand" id="footer-brand"></p>
+    <p class="footer__note" id="footer-note"></p>
+    <p class="footer__contact" id="footer-contact"></p>
+  </footer>
+
+  <!-- Modal de producto -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal__backdrop" data-close></div>
+    <article class="modal__card">
+      <button class="modal__close" data-close aria-label="Cerrar">✕</button>
+      <div class="modal__img-wrap">
+        <img class="modal__img" id="modal-img" src="" alt="">
+      </div>
+      <div class="modal__body">
+        <h3 class="modal__title" id="modal-title"></h3>
+        <p class="modal__desc modal__desc--es" id="modal-desc-es"></p>
+        <p class="modal__desc modal__desc--en" id="modal-desc-en"></p>
+        <ul class="modal__variants" id="modal-variants"></ul>
+        <p class="modal__price" id="modal-price"></p>
+        <p class="modal__allergens" id="modal-allergens"></p>
+      </div>
+    </article>
+  </div>
+
+  <script src="menu-data.js?v=5"></script>
+  <script src="config.js?v=5"></script>
+  <script src="app.js?v=5"></script>
+</body>
+</html>
