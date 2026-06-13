@@ -60,9 +60,14 @@ fuenteCuerpo, googleFonts`.
    escapando comillas simples `'`→`''`). El usuario lo ejecuta tras crear el
    usuario del dueño.
 5. **Generar el QR**: `cd <slug>/qr && python3 generate_qr.py <URL-final>`.
-6. **Empaquetar**: `bash .claude/skills/menu-interactivo/scripts/empaquetar.sh
-   <slug>` → ZIP en `/tmp/<slug>-netlify.zip`. Enviarlo con SendUserFile.
-7. **Commit + push** a la rama de trabajo.
+6. **VERIFICAR (obligatorio antes de entregar)**:
+   `bash .claude/skills/menu-interactivo/scripts/verificar.sh <slug>`
+   Abre la web en un navegador headless (Playwright) y confirma que renderiza
+   secciones + platos + modal sin errores JS. NO entregar si falla.
+7. **Empaquetar**: `bash .claude/skills/menu-interactivo/scripts/empaquetar.sh
+   <slug>` → genera el menú embebido y el ZIP en `/tmp/<slug>-netlify.zip`.
+   Enviarlo con SendUserFile.
+8. **Commit + push** a la rama de trabajo.
 
 ## Material de entrada (recordar SIEMPRE al activar)
 Formato preferido: **Fotos + ficha de texto**.
@@ -107,16 +112,39 @@ resolución (opcional, para el modal). Sin fotos de plato se usa un placeholder.
 - **Sin Supabase:** contraseña local (por defecto `admin1234`, cambiar el hash).
 
 ## ⚠️ Lecciones aprendidas (no tropezar de nuevo)
+- **SIEMPRE verificar con `verificar.sh` antes de entregar.** Un error JS en el
+  render deja la carta en blanco con "No se pudo cargar". El navegador headless
+  lo detecta; la vista de código no.
+- **`app.js` y `index.html` deben ir SIEMPRE juntos y de la misma versión.** El
+  bug de hoy: se copió el `app.js` data-driven sobre un `index.html` antiguo sin
+  los `id` (`#hero-logo`, `#hero-sub`, `#footer-brand`) → `applyTheme` petaba.
+  Por eso `applyTheme` usa ahora `setText()` que comprueba que el elemento existe.
+  Si se actualiza el `app.js` de un restaurante, actualizar también su `index.html`.
+- **Restaurantes existentes NO se actualizan solos al mejorar la plantilla:**
+  cada `<slug>/` es una copia congelada. Para llevar una mejora a un restaurante
+  ya creado hay que recopiar los archivos de `template/` (conservando su
+  `menu.json` y `config.js`) o parchearlo a mano.
+- **Caché del navegador:** los `<script>`/`<link>` llevan `?v=N`. Subir N cada vez
+  que cambie el JS/CSS para forzar recarga (móviles cachean agresivamente).
+- **Menú embebido de respaldo:** `empaquetar.sh` genera `cliente/menu-data.js`
+  (`window.MENU_FALLBACK`) desde `menu.json`; `app.js` lo usa si Supabase y
+  `menu.json` fallan. Garantiza que la carta nunca quede en blanco.
+- **Probar en local sirviendo desde la carpeta del restaurante** (`cd <slug> &&
+  python3 -m http.server`), NO desde la raíz del repo (si no, `/cliente/` da 404).
 - **Raíz del sitio:** incluir `index.html` que redirige a `cliente/` (si no, la
   URL base da 404). Ya está en la plantilla.
 - **Entrega:** generar un **ZIP** y enviarlo; al usuario no técnico le cuesta
-  descomprimir/seleccionar carpetas. Netlify Drop acepta el ZIP tal cual.
+  descomprimir/seleccionar carpetas. Netlify Drop acepta el ZIP tal cual. Darle
+  un nombre distintivo si hay riesgo de confundirlo con descargas anteriores.
 - **URL de Supabase:** deducirla del campo `ref` del JWT anon
   (`base64 -d` del payload), NO escribirla a mano (un carácter mal → "failed to
   fetch"). La URL es `https://<ref>.supabase.co`.
 - **Login:** campos **email y contraseña separados** (no `email:contraseña`).
 - **anon key** es pública (segura de poner en `config.js`); la **service/secret
   key NUNCA** se usa en el front.
+- **Aislamiento entre restaurantes:** la web lee con la función `get_menu(slug)`
+  (no lista la tabla) y la tabla tiene RLS por `owner_id`; así un restaurante no
+  puede descubrir ni editar los de otros. Ver `template/supabase/schema.sql`.
 - **Pausa free tier:** Supabase pausa el proyecto tras 7 días sin visitas; se
   reactiva con "Restore project" en ~2 min sin perder datos. Para un restaurante
   activo no ocurre.
