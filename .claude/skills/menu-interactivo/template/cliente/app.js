@@ -32,10 +32,15 @@
     if (t.fuenteCuerpo) root.setProperty("--f-cuerpo", "'" + t.fuenteCuerpo + "', sans-serif");
 
     if (t.googleFonts) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = "https://fonts.googleapis.com/css2?family=" + t.googleFonts + "&display=swap";
-      document.head.appendChild(link);
+      let link = document.getElementById("dynamic-fonts");
+      if (!link) {
+        link = document.createElement("link");
+        link.id = "dynamic-fonts";
+        link.rel = "stylesheet";
+        document.head.appendChild(link);
+      }
+      const href = "https://fonts.googleapis.com/css2?family=" + t.googleFonts + "&display=swap";
+      if (link.getAttribute("href") !== href) link.href = href;
     }
     /* Nombre del restaurante en portada/pie/título (solo si existen los elementos) */
     document.title = rest.nombre || "Menú";
@@ -160,6 +165,14 @@
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 
   /* ---------- Arranque ---------- */
+  /* Aplica el tema embebido (window.MENU_FALLBACK) de inmediato, antes de la
+     carga async, para que la fuente y el nombre correctos se pinten en el primer
+     frame: las Google Fonts empiezan a descargar ya y se evita el salto de
+     fuentes (FOUT). Idempotente: render() volverá a llamar a applyTheme sin
+     duplicar el <link>. */
+  const embedded = (window.MENU_FALLBACK || {}).restaurante;
+  if (embedded) applyTheme(embedded);
+
   loadMenu().then(render).catch(() => {
     $("#menu").innerHTML = '<p class="loading">No se pudo cargar la carta. Inténtalo de nuevo.</p>';
   });
