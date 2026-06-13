@@ -117,7 +117,9 @@
   /* ---------- Carga / guardado ---------- */
   async function loadMenu() {
     const draft = localStorage.getItem(DRAFT_KEY);
-    if (draft) return JSON.parse(draft);
+    if (draft) {
+      try { const d = JSON.parse(draft); if (d?.secciones?.length) return d; } catch (_) {}
+    }
     if (SUPA) {
       try {
         const res = await fetch(cfg.SUPABASE_URL + "/rest/v1/rpc/get_menu", {
