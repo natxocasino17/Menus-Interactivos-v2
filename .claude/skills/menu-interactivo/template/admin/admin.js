@@ -119,10 +119,19 @@
     const draft = localStorage.getItem(DRAFT_KEY);
     if (draft) return JSON.parse(draft);
     if (SUPA) {
-      const res = await fetch(cfg.SUPABASE_URL + "/rest/v1/menus?slug=eq." + cfg.RESTAURANT_SLUG + "&select=data",
-        { headers: { apikey: cfg.SUPABASE_ANON_KEY, Authorization: "Bearer " + cfg.SUPABASE_ANON_KEY } });
-      const rows = await res.json();
-      if (rows[0]?.data?.secciones?.length) return rows[0].data;
+      try {
+        const res = await fetch(cfg.SUPABASE_URL + "/rest/v1/rpc/get_menu", {
+          method: "POST",
+          headers: {
+            apikey: cfg.SUPABASE_ANON_KEY,
+            Authorization: "Bearer " + (accessToken || cfg.SUPABASE_ANON_KEY),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ p_slug: cfg.RESTAURANT_SLUG }),
+        });
+        const data = await res.json();
+        if (data?.secciones?.length) return data;
+      } catch (_) { /* cae al JSON estático */ }
     }
     return (await fetch("../cliente/menu.json", { cache: "no-store" })).json();
   }

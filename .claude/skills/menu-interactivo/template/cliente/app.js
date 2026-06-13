@@ -48,13 +48,19 @@
   async function loadMenu() {
     if (cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY) {
       try {
-        const url = cfg.SUPABASE_URL + "/rest/v1/menus?slug=eq." +
-          encodeURIComponent(cfg.RESTAURANT_SLUG) + "&select=data";
-        const res = await fetch(url, {
-          headers: { apikey: cfg.SUPABASE_ANON_KEY, Authorization: "Bearer " + cfg.SUPABASE_ANON_KEY },
+        /* Lee SOLO su propio menú por slug (función get_menu). No se puede
+           listar la tabla → ningún restaurante puede ver a los demás. */
+        const res = await fetch(cfg.SUPABASE_URL + "/rest/v1/rpc/get_menu", {
+          method: "POST",
+          headers: {
+            apikey: cfg.SUPABASE_ANON_KEY,
+            Authorization: "Bearer " + cfg.SUPABASE_ANON_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ p_slug: cfg.RESTAURANT_SLUG }),
         });
-        const rows = await res.json();
-        if (Array.isArray(rows) && rows[0] && rows[0].data && rows[0].data.secciones && rows[0].data.secciones.length) return rows[0].data;
+        const data = await res.json();
+        if (data && data.secciones && data.secciones.length) return data;
       } catch (_) { /* cae al JSON estático si Supabase falla o está vacío */ }
     }
     const res = await fetch(cfg.MENU_JSON || "menu.json", { cache: "no-store" });

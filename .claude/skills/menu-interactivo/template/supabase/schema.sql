@@ -40,9 +40,24 @@ drop policy if exists "menus insert propio" on public.menus;
 drop policy if exists "menus update propio" on public.menus;
 drop policy if exists "menus delete propio" on public.menus;
 
--- Lectura: pública (la necesitan las webs de clientes)
-create policy "menus lectura publica" on public.menus
-  for select using (true);
+-- Lectura de la TABLA: cada dueño solo ve SU fila (nadie puede listar el
+-- resto de restaurantes). Las webs de clientes NO leen la tabla; usan la
+-- función get_menu de abajo, que devuelve solo el menú de un slug concreto.
+drop policy if exists "menus lee su propia fila" on public.menus;
+create policy "menus lee su propia fila" on public.menus
+  for select using (owner_id = auth.uid());
+
+-- Función segura para que la web pública lea SOLO su menú por slug.
+-- No permite listar ni descubrir otros restaurantes.
+create or replace function public.get_menu(p_slug text)
+returns jsonb
+language sql
+security definer
+set search_path = public
+as $$
+  select data from public.menus where slug = p_slug;
+$$;
+grant execute on function public.get_menu(text) to anon, authenticated;
 
 -- Inserción: solo te puedes asignar a ti mismo como dueño
 create policy "menus insert propio" on public.menus
@@ -65,9 +80,9 @@ drop policy if exists "platos lectura publica" on storage.objects;
 drop policy if exists "platos subida dueno" on storage.objects;
 drop policy if exists "platos update dueno" on storage.objects;
 
--- Lectura pública de las fotos
-create policy "platos lectura publica" on storage.objects
-  for select using (bucket_id = 'platos');
+-- NO creamos política de "listar" el bucket: así nadie puede enumerar las
+-- carpetas y descubrir otros restaurantes. Las fotos se siguen viendo porque
+-- el bucket es público y se sirven por su URL directa.
 
 -- Subir solo a la carpeta de un restaurante que sea tuyo
 -- (las fotos se guardan como "<slug>/archivo.jpg")
