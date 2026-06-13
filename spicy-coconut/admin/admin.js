@@ -140,7 +140,7 @@
         { headers: { apikey: cfg.SUPABASE_ANON_KEY, Authorization: "Bearer " + cfg.SUPABASE_ANON_KEY } }
       );
       const rows = await res.json();
-      if (rows[0]?.data) return rows[0].data;
+      if (rows[0]?.data?.secciones?.length) return rows[0].data;
     }
     return (await fetch("../cliente/menu.json", { cache: "no-store" })).json();
   }

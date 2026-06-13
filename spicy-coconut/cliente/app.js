@@ -34,9 +34,9 @@
           },
         });
         const rows = await res.json();
-        if (Array.isArray(rows) && rows[0] && rows[0].data) return rows[0].data;
+        if (Array.isArray(rows) && rows[0] && rows[0].data && rows[0].data.secciones && rows[0].data.secciones.length) return rows[0].data;
       } catch (_) {
-        /* si Supabase falla, cae al JSON estático */
+        /* si Supabase falla o está vacío, cae al JSON estático */
       }
     }
     const res = await fetch(cfg.MENU_JSON || "menu.json", { cache: "no-store" });
