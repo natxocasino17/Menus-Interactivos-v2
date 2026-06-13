@@ -60,7 +60,7 @@
           body: JSON.stringify({ p_slug: cfg.RESTAURANT_SLUG }),
         });
         const data = await res.json();
-        if (data && data.secciones && data.secciones.length) return data;
+        if (data && data.restaurante && data.secciones && data.secciones.length) return data;
       } catch (_) { /* cae al JSON estático si Supabase falla o está vacío */ }
     }
     const res = await fetch(cfg.MENU_JSON || "menu.json", { cache: "no-store" });
@@ -81,14 +81,15 @@
 
   /* ---------- Render ---------- */
   function render(menu) {
-    applyTheme(menu.restaurante || {});
-    const moneda = menu.restaurante.moneda || "₡";
+    const rest = menu.restaurante || {};
+    applyTheme(rest);
+    const moneda = rest.moneda || "₡";
     const main = $("#menu");
     const chips = $("#nav-chips");
     main.innerHTML = "";
     chips.innerHTML = "";
 
-    [...menu.secciones].sort((a, b) => a.orden - b.orden).forEach((sec, i) => {
+    [...(menu.secciones || [])].sort((a, b) => a.orden - b.orden).forEach((sec, i) => {
       const chip = el("button", "nav__chip", esc(sec.nombre));
       chip.addEventListener("click", () =>
         document.getElementById("sec-" + sec.id)?.scrollIntoView({ behavior: "smooth" }));
@@ -121,8 +122,8 @@
       main.appendChild(section);
     });
 
-    $("#footer-note").textContent = menu.restaurante.notaPie || "";
-    const c = menu.restaurante.contacto || {};
+    $("#footer-note").textContent = rest.notaPie || "";
+    const c = rest.contacto || {};
     $("#footer-contact").textContent = [c.direccion, c.telefono, c.web].filter(Boolean).join(" · ");
   }
 
