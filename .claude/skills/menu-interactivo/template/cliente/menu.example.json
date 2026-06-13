@@ -1,0 +1,61 @@
+{
+  "restaurante": {
+    "nombre": "Nombre del Restaurante",
+    "slug": "nombre-restaurante",
+    "lema": "menu",
+    "logo": "",
+    "tema": {
+      "primario": "#DE5C26",
+      "secundario": "#B8431A",
+      "fondo": "#F3EDE0",
+      "texto": "#2B2118",
+      "oscuro": "#161310",
+      "crema": "#F2E9D5",
+      "fuenteLogo": "Shrikhand",
+      "fuenteTitulos": "Cinzel Decorative",
+      "fuenteCuerpo": "Poppins",
+      "googleFonts": "Shrikhand&family=Cinzel+Decorative:wght@400;700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400"
+    },
+    "contacto": { "telefono": "", "web": "", "direccion": "" },
+    "moneda": "₡",
+    "idiomas": ["es", "en"],
+    "notaPie": "10% de servicio no incluido // 10% service not included"
+  },
+  "secciones": [
+    {
+      "id": "entradas",
+      "nombre": "Entradas / Starters",
+      "orden": 1,
+      "nota": "",
+      "productos": [
+        {
+          "id": "ejemplo-plato",
+          "nombre": "Ejemplo de Plato",
+          "descripcion": {
+            "es": "Descripción en español del plato.",
+            "en": "Dish description in English."
+          },
+          "precio": 5900,
+          "imagen": "",
+          "alergenos": [],
+          "destacado": true,
+          "disponible": true
+        },
+        {
+          "id": "ejemplo-con-variantes",
+          "nombre": "Ejemplo con Variantes",
+          "descripcion": { "es": "Plato con opciones de proteína.", "en": "Dish with protein options." },
+          "precio": null,
+          "variantes": [
+            { "nombre": "Pollo / Chicken", "precio": 6800 },
+            { "nombre": "Camarón / Shrimp", "precio": 7800 }
+          ],
+          "imagen": "",
+          "alergenos": [],
+          "destacado": false,
+          "disponible": true
+        }
+      ]
+    }
+  ]
+}

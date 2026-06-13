@@ -2,131 +2,123 @@
 name: menu-interactivo
 description: >-
   Genera de forma automatizada el paquete completo para vender un menú digital
-  a un restaurante. A partir de fotos del menú físico + una ficha de texto del
-  negocio, produce: (1) el código QR de acceso, (2) la Web de Clientes (no
-  editable, interactiva, clonando el estilo del menú físico, con modal de
-  foto 4K + descripción + precio al tocar un producto) y (3) la Web de Admin
-  (panel privado para que el dueño edite precios, platos, descripciones e
-  imágenes). Usar cuando el usuario suba material de un restaurante nuevo o
-  diga "activa Menu Interactivo".
+  a un restaurante. A partir de fotos del menú físico + (opcional) una ficha de
+  texto, produce: (1) Web de Clientes (no editable, interactiva, clona el estilo
+  del menú físico, modal con foto + descripción + precio), (2) Web de Admin
+  (panel privado con login para editar precios, platos, descripciones e
+  imágenes) y (3) el código QR. Stack 100% gratis (HTML/CSS/JS + Netlify +
+  Supabase). Usar cuando el usuario suba material de un restaurante nuevo o diga
+  "activa Menu Interactivo".
 ---
 
 # Skill: Menu Interactivo
 
-Herramienta automatizada para generar, por restaurante, un paquete de menú
-digital **listo para vender de forma individual**. Stack 100 % gratuito.
+Genera, por restaurante, un paquete de menú digital **listo para vender**.
+**Existe una PLANTILLA reutilizable** (`template/`): el esqueleto (HTML/CSS/JS)
+no se reescribe nunca. Lo único que cambia por restaurante es el **`menu.json`**
+(datos + tema + fuentes) y el **`config.js`** (slug + claves Supabase).
 
 ## Stack fijado (todo gratis)
+- **Webs:** HTML + CSS + JS puro, sin build. Carpeta autocontenida.
+- **Hosting + QR:** Netlify Drop (free). El QR apunta al subdominio gratuito.
+- **Backend (publicación instantánea):** Supabase free → Postgres (tabla `menus`
+  con JSONB) + Storage (bucket `platos`) + Auth (login del dueño).
+- **Sin backend (fallback):** el menú vive en `menu.json`; el Admin exporta el
+  JSON y se vuelve a subir al hosting.
 
-- **Web Clientes + Web Admin:** HTML + CSS + JavaScript puro (sin build, sin
-  framework). Se entrega como una carpeta autocontenida.
-- **Hosting + URL del QR:** Netlify o GitHub Pages (free tier). El QR apunta al
-  subdominio gratuito (ej. `nombrerestaurante.netlify.app`).
-- **Persistencia del Admin:** Supabase (free tier) → Postgres (datos del menú)
-  + Storage (fotos 4K) + Auth (login del dueño). Los cambios del Admin se ven
-  en la Web de Clientes al instante.
-- **Generación del QR:** en local, apuntando a la URL gratuita.
-- **Fallback sin backend:** si un cliente no quiere Supabase, el menú puede
-  vivir en un `menu.json` estático y el Admin exporta/importa ese JSON.
+## ⚙️ La plantilla es data-driven (clave para ir rápido)
+`template/cliente/app.js` lee `menu.json → restaurante.tema` e **inyecta en
+runtime**: colores (variables CSS), fuentes (carga el `<link>` de Google Fonts
+desde `tema.googleFonts`), nombre, lema, contacto y nota de pie. Por eso un
+restaurante con **otras fuentes y otros platos** NO requiere tocar el código:
+basta con su `menu.json`.
 
-## Material de entrada (lo que el usuario me pasa al activar la Skill)
+Campos de tema en `menu.json` (ver `template/cliente/menu.example.json`):
+`primario, secundario, fondo, texto, oscuro, crema, fuenteLogo, fuenteTitulos,
+fuenteCuerpo, googleFonts`.
 
+## Flujo de trabajo (qué hago al activar la Skill)
+1. **Recordar el material** que prefiero recibir (ver abajo) y avisar de lo que
+   falte. Si no hay ficha de texto, **deduzco** tema/fuentes/idiomas de las fotos.
+2. **Crear el restaurante** desde la plantilla:
+   `bash .claude/skills/menu-interactivo/scripts/nuevo_restaurante.sh <slug>`
+   (copia `template/` a `/<slug>/`, renombra `menu.example.json`→`menu.json` y
+   fija el slug en `config.js`).
+3. **Rellenar `<slug>/cliente/menu.json`**: extraer secciones, platos,
+   descripciones (es/en), precios y variantes de las fotos; y fijar el **tema**
+   (colores + fuentes) clonando el estilo del menú físico. Validar con `python3
+   -c "import json,...; json.load(...)"` y enseñar al usuario un resumen
+   (nº secciones / nº productos).
+4. **(Opcional) Supabase**: dejar `supabase/schema.sql` listo. Si el usuario da
+   las claves, rellenar `config.js` (SUPABASE_URL + ANON_KEY).
+5. **Generar el QR**: `cd <slug>/qr && python3 generate_qr.py <URL-final>`.
+6. **Empaquetar**: `bash .claude/skills/menu-interactivo/scripts/empaquetar.sh
+   <slug>` → ZIP en `/tmp/<slug>-netlify.zip`. Enviarlo con SendUserFile.
+7. **Commit + push** a la rama de trabajo.
+
+## Material de entrada (recordar SIEMPRE al activar)
 Formato preferido: **Fotos + ficha de texto**.
-
-### 1. Ficha de texto del restaurante
 ```
 Nombre del restaurante:
 Tipo de cocina:
-Logo: (adjunta archivo; opcional)
-Colores de marca: (principal / secundario / fondo)  — o escribe "deducir de las fotos"
-Tipografía: (nombre o ejemplo)  — o "deducir de las fotos"
-Idioma(s) de la carta:
+Logo: (opcional)
+Colores de marca / tipografía:  — o "deducir de las fotos"
+Idioma(s):
 Contacto: (teléfono / web / redes / dirección)
-Moneda y símbolo: (ej. EUR €)
-Notas: (secciones a forzar, platos a destacar, alérgenos, etc.)
+Moneda y símbolo:
+Notas:
 ```
+Fotos: todas las páginas del menú físico (legibles) + fotos de platos en alta
+resolución (opcional, para el modal). Sin fotos de plato se usa un placeholder.
 
-### 2. Fotos
-- **Menú físico:** todas las páginas, bien iluminadas y legibles (de ahí extraigo
-  secciones, nombres de plato, descripciones y precios).
-- **Platos individuales (opcional pero recomendado):** la mejor resolución
-  posible (ideal 4K) para el modal. Nómbralas o asócialas al plato.
+## Guía de despliegue para el usuario (entregar con el ZIP)
+1. **Netlify:** arrastrar el **ZIP** (sin descomprimir) a
+   [app.netlify.com/drop](https://app.netlify.com/drop). Da una URL
+   `https://<algo>.netlify.app`. Personalizar en *Site settings → Change site name*.
+   - Cliente: `…/cliente/` · Admin: `…/admin/` · La raíz redirige al cliente.
+2. **Supabase (publicación instantánea):**
+   - [supabase.com](https://supabase.com) → New project (free, región Europa).
+   - **SQL Editor** → pegar `supabase/schema.sql` → Run. (Crea tabla `menus`,
+     RLS lectura-pública/escritura-autenticada, y bucket `platos`.)
+   - **Authentication → Add user** → email + contraseña del dueño (Auto Confirm).
+   - **Project Settings → API** → copiar **Project URL** + **anon public**.
+   - Pegar ambos en `cliente/config.js`, re-empaquetar y re-subir a Netlify.
+   - El menú se sube a Supabase entrando al Admin y pulsando **Guardar cambios**
+     una vez (no hace falta `seed.sql`).
+3. **QR:** regenerar con la URL final y entregar `qr/qr.png`.
 
-> Al activar la Skill, **siempre recordar al usuario esta estructura** antes de
-> empezar a generar.
+## Login del Admin
+- **Con Supabase:** dos campos (email + contraseña). Cambio de contraseña desde
+  el botón del panel o desde Supabase. Cambio de email desde Supabase.
+- **Sin Supabase:** contraseña local (por defecto `admin1234`, cambiar el hash).
 
-## Modelo de datos del menú (canónico)
-
-```json
-{
-  "restaurante": {
-    "nombre": "",
-    "logo": "",
-    "tema": { "primario": "", "secundario": "", "fondo": "", "texto": "", "fuente": "" },
-    "contacto": { "telefono": "", "web": "", "direccion": "" },
-    "moneda": "€"
-  },
-  "secciones": [
-    {
-      "id": "",
-      "nombre": "",
-      "orden": 0,
-      "productos": [
-        {
-          "id": "",
-          "nombre": "",
-          "descripcion": "",
-          "precio": 0.0,
-          "imagen": "",
-          "alergenos": [],
-          "destacado": false,
-          "disponible": true
-        }
-      ]
-    }
-  ]
-}
-```
+## ⚠️ Lecciones aprendidas (no tropezar de nuevo)
+- **Raíz del sitio:** incluir `index.html` que redirige a `cliente/` (si no, la
+  URL base da 404). Ya está en la plantilla.
+- **Entrega:** generar un **ZIP** y enviarlo; al usuario no técnico le cuesta
+  descomprimir/seleccionar carpetas. Netlify Drop acepta el ZIP tal cual.
+- **URL de Supabase:** deducirla del campo `ref` del JWT anon
+  (`base64 -d` del payload), NO escribirla a mano (un carácter mal → "failed to
+  fetch"). La URL es `https://<ref>.supabase.co`.
+- **Login:** campos **email y contraseña separados** (no `email:contraseña`).
+- **anon key** es pública (segura de poner en `config.js`); la **service/secret
+  key NUNCA** se usa en el front.
+- **Pausa free tier:** Supabase pausa el proyecto tras 7 días sin visitas; se
+  reactiva con "Restore project" en ~2 min sin perder datos. Para un restaurante
+  activo no ocurre.
+- Mostrar al usuario un **resumen del menú extraído** para validar antes de seguir.
 
 ## Estructura de salida (por restaurante)
-
 ```
-<slug-restaurante>/
-├── cliente/            # Web de Clientes (pública, no editable)
-│   ├── index.html
-│   ├── styles.css      # clona estilo/colores/fuentes del menú físico
-│   ├── app.js          # render por secciones + modal foto 4K/desc/precio
-│   └── menu.json       # o lectura desde Supabase
-├── admin/              # Web de Admin (privada, login)
-│   ├── index.html
-│   ├── styles.css
-│   └── admin.js        # CRUD precios/platos/descripciones/imágenes
-├── qr/
-│   └── qr.png          # apunta a la URL de la Web de Clientes
-├── supabase/
-│   └── schema.sql      # tablas + storage + RLS (si se usa backend)
-└── README.md           # cómo desplegar gratis + credenciales del dueño
+<slug>/
+├── index.html              # redirige a cliente/
+├── cliente/  index.html · styles.css · app.js · config.js · menu.json · img/
+├── admin/    index.html · styles.css · admin.js
+├── qr/       generate_qr.py · qr.png
+├── supabase/ schema.sql
+└── README.md
 ```
-
-## Flujo de trabajo de la Skill
-
-1. **Recopilar:** pedir/confirmar ficha de texto + fotos (ver estructura arriba).
-2. **Extraer:** leer las fotos del menú físico → poblar el modelo de datos
-   canónico (secciones, platos, descripciones, precios). Mostrar al usuario el
-   `menu.json` resultante para validación rápida.
-3. **Clonar estilo:** deducir colores, tipografía y maquetación del menú físico
-   y reflejarlos en `styles.css`.
-4. **Generar Web Clientes:** render por secciones; tocar producto → modal con
-   foto 4K + descripción + precio. No editable.
-5. **Generar Web Admin:** panel con login; CRUD de precios, platos, descripciones
-   e imágenes; guarda en Supabase (o exporta JSON en modo fallback).
-6. **Generar QR:** apuntando a la URL gratuita de despliegue.
-7. **Empaquetar:** entregar la carpeta `<slug-restaurante>/` modular y limpia,
-   con README de despliegue gratis paso a paso.
 
 ## Principios
-
-- Código **limpio, modular y autocontenido** por restaurante (se vende suelto).
-- Cero costes: solo servicios free tier.
-- La Web de Clientes nunca expone edición; la de Admin siempre va protegida.
-- Reutilizar la plantilla base entre restaurantes; solo cambian datos y tema.
+- Plantilla intacta y reutilizable; por restaurante solo `menu.json` + `config.js`.
+- Cero costes: solo free tier. Cliente no editable; Admin siempre con login.
