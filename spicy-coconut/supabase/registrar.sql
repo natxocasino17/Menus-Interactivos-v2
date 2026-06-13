@@ -1,9 +1,9 @@
--- ============================================================
--- Spicy Coconut · Carga inicial del menú en Supabase
--- Ejecutar DESPUÉS de schema.sql, en: SQL Editor → pegar → Run
--- ============================================================
-insert into public.menus (slug, data) values (
+-- Registro de spicy-coconut en el Supabase compartido.
+-- Requisito: crear antes el usuario natxocasino@gmail.com en Authentication → Add user.
+insert into public.menus (slug, owner_id, data)
+select
   'spicy-coconut',
+  (select id from auth.users where email = 'natxocasino@gmail.com'),
   '{
   "restaurante": {
     "nombre": "Spicy Coconut",
@@ -613,5 +613,6 @@ insert into public.menus (slug, data) values (
   ]
 }
 '::jsonb
-)
-on conflict (slug) do update set data = excluded.data;
+on conflict (slug) do update
+  set data = excluded.data,
+      owner_id = excluded.owner_id;

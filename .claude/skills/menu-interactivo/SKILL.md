@@ -21,8 +21,12 @@ no se reescribe nunca. Lo único que cambia por restaurante es el **`menu.json`*
 ## Stack fijado (todo gratis)
 - **Webs:** HTML + CSS + JS puro, sin build. Carpeta autocontenida.
 - **Hosting + QR:** Netlify Drop (free). El QR apunta al subdominio gratuito.
-- **Backend (publicación instantánea):** Supabase free → Postgres (tabla `menus`
-  con JSONB) + Storage (bucket `platos`) + Auth (login del dueño).
+- **Backend (publicación instantánea):** **UN SOLO** proyecto Supabase free
+  COMPARTIDO por todos los restaurantes (el free tier limita a ~2 proyectos, así
+  que NO se crea uno por restaurante). Postgres (tabla `menus` multi-restaurante
+  con JSONB) + Storage (bucket `platos`) + Auth (un usuario por dueño).
+  Seguro por diseño: cada menú está atado a su `owner_id` y cada dueño solo
+  edita el suyo (RLS).
 - **Sin backend (fallback):** el menú vive en `menu.json`; el Admin exporta el
   JSON y se vuelve a subir al hosting.
 
@@ -49,8 +53,12 @@ fuenteCuerpo, googleFonts`.
    (colores + fuentes) clonando el estilo del menú físico. Validar con `python3
    -c "import json,...; json.load(...)"` y enseñar al usuario un resumen
    (nº secciones / nº productos).
-4. **(Opcional) Supabase**: dejar `supabase/schema.sql` listo. Si el usuario da
-   las claves, rellenar `config.js` (SUPABASE_URL + ANON_KEY).
+4. **(Opcional) Supabase compartido**: rellenar `config.js` con la URL + anon key
+   del proyecto compartido (las mismas para todos). Generar
+   `supabase/registrar.sql` a partir de `registrar.example.sql` sustituyendo
+   `__SLUG__`, `__EMAIL_DUENO__` y `__MENU_JSON__` (con el menu.json en una línea,
+   escapando comillas simples `'`→`''`). El usuario lo ejecuta tras crear el
+   usuario del dueño.
 5. **Generar el QR**: `cd <slug>/qr && python3 generate_qr.py <URL-final>`.
 6. **Empaquetar**: `bash .claude/skills/menu-interactivo/scripts/empaquetar.sh
    <slug>` → ZIP en `/tmp/<slug>-netlify.zip`. Enviarlo con SendUserFile.
@@ -76,15 +84,21 @@ resolución (opcional, para el modal). Sin fotos de plato se usa un placeholder.
    [app.netlify.com/drop](https://app.netlify.com/drop). Da una URL
    `https://<algo>.netlify.app`. Personalizar en *Site settings → Change site name*.
    - Cliente: `…/cliente/` · Admin: `…/admin/` · La raíz redirige al cliente.
-2. **Supabase (publicación instantánea):**
-   - [supabase.com](https://supabase.com) → New project (free, región Europa).
-   - **SQL Editor** → pegar `supabase/schema.sql` → Run. (Crea tabla `menus`,
-     RLS lectura-pública/escritura-autenticada, y bucket `platos`.)
-   - **Authentication → Add user** → email + contraseña del dueño (Auto Confirm).
-   - **Project Settings → API** → copiar **Project URL** + **anon public**.
-   - Pegar ambos en `cliente/config.js`, re-empaquetar y re-subir a Netlify.
-   - El menú se sube a Supabase entrando al Admin y pulsando **Guardar cambios**
-     una vez (no hace falta `seed.sql`).
+2. **Supabase (publicación instantánea) — proyecto COMPARTIDO:**
+   - **Solo la 1ª vez en la vida** (un proyecto para todos los restaurantes):
+     - [supabase.com](https://supabase.com) → New project (free, región Europa).
+     - **SQL Editor** → pegar `supabase/schema.sql` → Run (tabla multi-restaurante
+       + RLS por dueño + bucket `platos`).
+     - **Authentication → Sign In / Providers → DESACTIVAR "Allow new users to
+       sign up"** (hardening: solo tú das de alta dueños).
+     - **Project Settings → API** → guardar **Project URL** + **anon public**
+       (sirven para TODOS los restaurantes; van en cada `config.js`).
+   - **Por cada restaurante nuevo (2 pasos):**
+     1. **Authentication → Add user** → email + contraseña del dueño (Auto Confirm).
+     2. **SQL Editor** → pegar el `supabase/registrar.sql` que yo genero (lleva el
+        slug, el email del dueño y el menú) → Run. Esto crea su fila atada a él.
+   - Pegar URL + anon key en `cliente/config.js`, re-empaquetar, re-subir a Netlify.
+   - Tras esto, el dueño edita y publica al instante; solo puede tocar SU menú.
 3. **QR:** regenerar con la URL final y entregar `qr/qr.png`.
 
 ## Login del Admin
