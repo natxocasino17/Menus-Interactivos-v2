@@ -37,11 +37,12 @@
       link.href = "https://fonts.googleapis.com/css2?family=" + t.googleFonts + "&display=swap";
       document.head.appendChild(link);
     }
-    /* Nombre del restaurante en portada/pie/título */
+    /* Nombre del restaurante en portada/pie/título (solo si existen los elementos) */
     document.title = rest.nombre || "Menú";
-    $("#hero-logo").textContent = rest.nombre || "Menú";
-    $("#hero-sub").textContent = rest.lema || "menu";
-    $("#footer-brand").textContent = rest.nombre || "";
+    const setText = (sel, val) => { const node = $(sel); if (node) node.textContent = val; };
+    setText("#hero-logo", rest.nombre || "Menú");
+    setText("#hero-sub", rest.lema || "menu");
+    setText("#footer-brand", rest.nombre || "");
   }
 
   /* ---------- Carga de datos ---------- */
