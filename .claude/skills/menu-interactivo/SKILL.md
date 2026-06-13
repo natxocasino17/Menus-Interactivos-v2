@@ -18,7 +18,14 @@ Genera, por restaurante, un paquete de menú digital **listo para vender**.
 **Hay una PLANTILLA reutilizable (`template/`)**: el esqueleto HTML/CSS/JS no se
 reescribe nunca. Lo único que cambia por restaurante es:
 - `cliente/menu.json` → datos (carta) + tema (colores y fuentes) + nombre.
-- `cliente/config.js` → slug + claves del Supabase compartido.
+- `cliente/config.js` → solo el slug (las claves del Supabase compartido se
+  inyectan **solas** desde `supabase_compartido.env`; ver abajo).
+
+**Supabase ya es multi-restaurante y automático.** Las credenciales del proyecto
+compartido viven en `supabase_compartido.env` (URL + anon key, fuente única de la
+verdad). `nuevo_restaurante.sh` las inyecta en el `config.js` de cada restaurante
+nuevo, así que **nace ya conectado** sin tocar nada a mano. Un restaurante NO es
+un proyecto Supabase: es una **fila** en la tabla `menus` (lo separa el `slug`).
 
 La plantilla es **data-driven**: `cliente/app.js` lee `menu.json → restaurante.tema`
 e inyecta en runtime colores (variables CSS), fuentes (Google Fonts vía
@@ -46,9 +53,14 @@ con otras fuentes y otra carta NO requiere tocar código.
    platos, descripciones (es/en), precios y variantes; fijar el `tema` (colores +
    fuentes + `googleFonts`) clonando el estilo del menú físico. Validar el JSON y
    mostrar al usuario un resumen (nº secciones / nº platos).
-4. **(Opcional) Supabase compartido:** rellenar `config.js` con URL + anon key
-   (las mismas para todos). Generar el SQL de registro:
+4. **Supabase compartido (ya conectado):** el `config.js` viene con las claves
+   inyectadas por `nuevo_restaurante.sh` (no hay que pegarlas). Solo generar el
+   SQL de registro:
    `bash .claude/skills/menu-interactivo/scripts/registrar_sql.sh <slug> <email-dueño>`
+   El usuario hará 2 pasos en SU panel (el mismo proyecto de siempre, no uno
+   nuevo): (a) **Authentication → Add user** — *solo si el email es nuevo*; si
+   reutiliza un email ya dado de alta, saldrá "already registered" y eso es
+   normal, se salta este paso; (b) **SQL Editor → registrar.sql → Run**.
 5. **Generar el QR:** `cd <slug>/qr && python3 generate_qr.py <URL-final>`
 6. **VERIFICAR (obligatorio):**
    `bash .claude/skills/menu-interactivo/scripts/verificar.sh <slug>`
@@ -62,7 +74,7 @@ con otras fuentes y otra carta NO requiere tocar código.
 ## Scripts (`scripts/`)
 | Script | Qué hace |
 |---|---|
-| `nuevo_restaurante.sh <slug>` | Copia `template/` a `/<slug>/`, renombra `menu.example.json`→`menu.json`, fija el slug en `config.js`. |
+| `nuevo_restaurante.sh <slug>` | Copia `template/` a `/<slug>/`, renombra `menu.example.json`→`menu.json`, fija el slug y **conecta el restaurante al Supabase compartido** inyectando URL + anon key desde `supabase_compartido.env`. |
 | `registrar_sql.sh <slug> <email>` | Genera `<slug>/supabase/registrar.sql` (slug + email del dueño + menú) para el Supabase compartido. |
 | `verificar.sh <slug>` | Chequeo estático de `id` + render en navegador (Playwright). |
 | `empaquetar.sh <slug>` | Regenera `menu-data.js` y crea el ZIP para Netlify. |
@@ -101,10 +113,16 @@ fuenteCuerpo, googleFonts`. Cada producto admite `precio` o `variantes`
        sign up"** (solo tú das de alta dueños).
      - **Project Settings → API** → guardar **Project URL** + **anon public**
        (sirven para todos los restaurantes; van en cada `config.js`).
-   - **Por cada restaurante (2 pasos):**
+   - **Por cada restaurante (2 pasos, en el MISMO proyecto, no uno nuevo):**
      1. **Authentication → Add user** → email + contraseña del dueño (Auto Confirm).
+        *Solo si el email es nuevo.* Si reutilizas un email ya dado de alta
+        (un mismo usuario puede ser dueño de varias cartas), Supabase dirá
+        "already registered" → ignóralo y salta al paso 2. En ese caso la
+        contraseña del Admin es la que ya tenía ese usuario (cambiable luego
+        desde el botón del panel).
      2. **SQL Editor** → pegar `supabase/registrar.sql` → Run (crea su fila atada a él).
-   - Pegar URL + anon key en `config.js`, re-empaquetar, re-subir.
+   - El `config.js` ya trae URL + anon key (las inyecta `nuevo_restaurante.sh`).
+     No hay que pegarlas a mano; solo re-empaquetar y subir el ZIP.
 3. **QR:** regenerar con la URL final y entregar `qr/qr.png`.
 
 ## Login del Admin
@@ -113,6 +131,19 @@ fuenteCuerpo, googleFonts`. Cada producto admite `precio` o `variantes`
 - **Sin Supabase:** contraseña local (plantilla: `admin1234`; cambiar el hash).
 
 ## ⚠️ Lecciones aprendidas (no tropezar de nuevo)
+- **Supabase es UN solo proyecto compartido; NO hay proyecto por restaurante.**
+  No busques (ni crees) un proyecto llamado como el restaurante: cada uno es una
+  **fila** en `menus`. Las credenciales viven en `supabase_compartido.env` y
+  `nuevo_restaurante.sh` las inyecta solo. Para cambiar de proyecto compartido,
+  edita ese `.env` (afecta solo a los restaurantes nuevos; los ya creados son
+  copias congeladas y hay que parchear su `config.js`).
+- **Un mismo email/usuario puede ser dueño de varias cartas.** Al dar de alta el
+  dueño, si reutilizas un email ya registrado Supabase responde "A user with this
+  email address has already been registered" → es NORMAL, no es un error: salta
+  el "Add user" y corre directamente el `registrar.sql` (busca al usuario por
+  email y le ata la fila). La contraseña del Admin será la que ese usuario ya
+  tenía; se cambia desde el botón del panel. Para cuentas independientes por
+  dueño, usa un email distinto por restaurante.
 - **SIEMPRE `verificar.sh` antes de entregar.** Un error JS en el render deja la
   carta en blanco; el navegador headless lo detecta, la vista de código no.
 - **`app.js`/`admin.js` e `index.html` van SIEMPRE de la misma versión.** Bug
