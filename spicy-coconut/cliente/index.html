@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spicy Coconut · Menú</title>
+  <meta name="description" content="Menú digital de Spicy Coconut — cocina caribeña y asiática.">
+  <meta name="theme-color" content="#161310">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Cinzel+Decorative:wght@400;700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Portada: clona la cubierta oscura tropical del menú físico -->
+  <header class="hero" id="top">
+    <div class="hero__flower" aria-hidden="true">❋</div>
+    <h1 class="hero__logo">Spicy<br>Coconut</h1>
+    <p class="hero__sub">menu</p>
+    <a class="hero__cta" href="#nav">Ver la carta ↓</a>
+  </header>
+
+  <!-- Navegación de secciones -->
+  <nav class="nav" id="nav" aria-label="Secciones del menú">
+    <div class="nav__scroll" id="nav-chips"><!-- chips generados por app.js --></div>
+  </nav>
+
+  <!-- Secciones del menú (generadas por app.js) -->
+  <main id="menu" aria-live="polite">
+    <p class="loading">Cargando la carta…</p>
+  </main>
+
+  <!-- Pie -->
+  <footer class="footer">
+    <div class="footer__flower" aria-hidden="true">❋</div>
+    <p class="footer__brand">Spicy Coconut</p>
+    <p class="footer__note" id="footer-note"></p>
+    <p class="footer__contact" id="footer-contact"></p>
+  </footer>
+
+  <!-- Modal de producto -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal__backdrop" data-close></div>
+    <article class="modal__card">
+      <button class="modal__close" data-close aria-label="Cerrar">✕</button>
+      <div class="modal__img-wrap">
+        <img class="modal__img" id="modal-img" src="" alt="">
+      </div>
+      <div class="modal__body">
+        <h3 class="modal__title" id="modal-title"></h3>
+        <p class="modal__desc modal__desc--es" id="modal-desc-es"></p>
+        <p class="modal__desc modal__desc--en" id="modal-desc-en"></p>
+        <ul class="modal__variants" id="modal-variants"></ul>
+        <p class="modal__price" id="modal-price"></p>
+        <p class="modal__allergens" id="modal-allergens"></p>
+      </div>
+    </article>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
