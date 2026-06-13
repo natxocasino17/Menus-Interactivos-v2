@@ -171,8 +171,8 @@
   /* ---------- Render del editor ---------- */
   function render() {
     if (menu.restaurante?.nombre) {
-      $("#topbar-logo").innerHTML = esc(menu.restaurante.nombre) + " <span>admin</span>";
-      $("#login-logo").textContent = menu.restaurante.nombre;
+      const tl = $("#topbar-logo"); if (tl) tl.innerHTML = esc(menu.restaurante.nombre) + " <span>admin</span>";
+      const ll = $("#login-logo"); if (ll) ll.textContent = menu.restaurante.nombre;
     }
     const editor = $("#editor");
     editor.innerHTML = "";
