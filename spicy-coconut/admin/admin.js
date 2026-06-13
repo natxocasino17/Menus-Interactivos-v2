@@ -99,6 +99,34 @@
     location.reload();
   });
 
+  /* ---------- Cambiar contraseña (el propio dueño) ---------- */
+  $("#btn-password").addEventListener("click", async () => {
+    const nueva = prompt("Nueva contraseña (mínimo 6 caracteres):");
+    if (nueva === null) return;
+    if (nueva.length < 6) { hint("❌ La contraseña debe tener al menos 6 caracteres."); return; }
+    if (prompt("Repite la nueva contraseña:") !== nueva) { hint("❌ Las contraseñas no coinciden."); return; }
+    try {
+      if (SUPA && accessToken) {
+        const res = await fetch(cfg.SUPABASE_URL + "/auth/v1/user", {
+          method: "PUT",
+          headers: {
+            apikey: cfg.SUPABASE_ANON_KEY,
+            Authorization: "Bearer " + accessToken,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ password: nueva }),
+        });
+        if (!res.ok) throw new Error("Supabase rechazó el cambio");
+        hint("✅ Contraseña actualizada. Úsala en el próximo inicio de sesión.");
+      } else {
+        localStorage.setItem("mi-admin-hash", await hashPass(nueva));
+        hint("✅ Contraseña actualizada en este navegador.");
+      }
+    } catch (e) {
+      hint("❌ No se pudo cambiar la contraseña: " + e.message);
+    }
+  });
+
   /* ---------- Carga / guardado ---------- */
   async function loadMenu() {
     const draft = localStorage.getItem(DRAFT_KEY);
